@@ -12,8 +12,12 @@ class Game:
         # TODO: Create a game window using Pygame
         # self.screen = ?
 
+        self.screen = pygame.display.set_mode((app.WIDTH, app.HEIGHT))
+        pygame.display.set_caption("Shooter")
+
         # TODO: Set up the game clock for frame rate control
         # self.clock = ?
+        self.clock = pygame.time.Clock()
 
         # TODO: Load assets (e.g., fonts, images)
         # self.font_small = ?
