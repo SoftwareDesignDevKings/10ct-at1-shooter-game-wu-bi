@@ -21,6 +21,12 @@ class Game:
 
         # TODO: Load assets (e.g., fonts, images)
         # self.font_small = ?
+        self.assets = app.load_assets()
+
+        font_path = os.path.join("assets", "PressStart2P.ttf")
+        self.font_small = pygame.font.Font(font_path, 18)
+        self.font_large = pygame.font.Font(font_path, 32)
+
 
         # TODO: Set up game state variables
         # self.running = True
