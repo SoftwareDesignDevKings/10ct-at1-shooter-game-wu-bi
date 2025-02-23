@@ -32,7 +32,10 @@ class Game:
         # self.running = True
 
         # TODO: Create a random background
-        # self.background = ?
+        self.background = self.create_random_background(
+        app.WIDTH, app.HEIGHT, self.assets["floor_tiles"]
+        )
+
         
     def reset_game(self):
         self.game_over = False
