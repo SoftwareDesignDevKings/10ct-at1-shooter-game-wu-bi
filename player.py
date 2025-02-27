@@ -6,10 +6,14 @@ class Player:
         """Initialize the player with position and image assets."""
         # TODO: 1. Store the player's position
         # e.g. self.x = x, self.y = y
+        self.x = x
+        self.y = y
 
         # TODO: 2. Load the player's image from assets
         # For example: self.image = assets["player_idle"][0]
         # (or some default image key in assets)
+
+        self.image = self.animations[self.state][self.frame_index]
 
         self.speed = app.PLAYER_SPEED
         self.animations = assets["player"]
@@ -21,8 +25,10 @@ class Player:
         # TODO: 3. Create a collision rectangle (self.rect) 
         # For example: 
         # self.rect = self.image.get_rect(center=(self.x, self.y))
+        self.rect = self.image.get_rect(center=(self.x, self.y))
 
         # TODO: 4. Add player health 
+        self.facing_left = False
 
     def handle_input(self):
         """Check and respond to keyboard/mouse input."""
