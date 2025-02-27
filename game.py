@@ -80,10 +80,12 @@ class Game:
         """Process user input (keyboard, mouse, quitting)."""
 
         for event in pygame.event.get():
-            pass
+            # pass
             # TODO: Allow the player to quit the game
             # if event.type == ?:
             #     self.running = False
+            if event.type == pygame.QUIT:
+                self.running = False
 
     def update(self):
         """Update the game state (player, enemies, etc.)."""
@@ -91,11 +93,12 @@ class Game:
 
     def draw(self):
         """Render all game elements to the screen."""
-        pass
+        # pass
         # TODO: Draw the background
         # self.screen.blit(?, (0, 0))
+        self.screen.blit(self.background, (0, 0))
 
         # TODO: Draw player, enemies, UI elements
-
+        
         # Refresh the screen
         pygame.display.flip()
