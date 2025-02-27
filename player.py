@@ -34,21 +34,37 @@ class Player:
         """Check and respond to keyboard/mouse input."""
 
         # TODO: 1. Capture Keyboard Input
+        keys = pygame.key.get_pressed()
 
         # velocity in X, Y direction
         vel_x, vel_y = 0, 0
 
         # TODO: 2. Adjust player position with keys pressed, updating the player position to vel_x and vel_y
+        if keys[pygame.K_LEFT]:
+            vel_x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            vel_x += self.speed
+        if keys[pygame.K_UP]:
+            vel_y -= self.speed
+        if keys[pygame.K_DOWN]:
+            vel_y += self.speed
+
+        self.x += vel_x
+        self.y += vel_y
+
 
         # TODO: 3. Clamp player position to screen bounds
+        self.x = max(0, min(self.x, app.WIDTH))
+        self.y = max(0, min(self.y, app.HEIGHT))
+        self.rect.center = (self.x, self.y)
 
-        # animation state
+        # Determine animation state
         if vel_x != 0 or vel_y != 0:
             self.state = "run"
         else:
             self.state = "idle"
 
-        # direction
+        # Facing direction
         if vel_x < 0:
             self.facing_left = True
         elif vel_x > 0:
@@ -65,13 +81,19 @@ class Player:
             center = self.rect.center
             self.rect = self.image.get_rect()
             self.rect.center = center
-        pass
+        # pass
 
     def draw(self, surface):
         """Draw the player on the screen."""
         # TODO: Draw the image to the given surface at self.rect
         # For example: surface.blit(self.image, self.rect)
-        pass
+        # pass
+
+        if self.facing_left:
+            flipped_img = pygame.transform.flip(self.image, True, False)
+            surface.blit(flipped_img, self.rect)
+        else:
+            surface.blit(self.image, self.rect)
 
     def take_damage(self, amount):
         """Reduce the player's health by a given amount, not going below zero."""
