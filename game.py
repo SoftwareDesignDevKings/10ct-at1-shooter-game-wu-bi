@@ -56,27 +56,23 @@ class Game:
 
     def run(self):
         while self.running:
-            pass
+            # pass
             # TODO: Set a frame rate limit
             # self.clock.tick( ? )
             self.clock.tick(app.FPS)    # Control the game speed: at most FPS frames per second.
-            self.handle_events()    # Check for user input or other events.
-
-            if not self.game_over:
-                self.update()       # Only update if the game is not over.
-
-            self.draw()             # Draw everything on screen.
-
-        pygame.quit()               # Cleanly close Pygame once we exit the loop.
 
             # TODO: Handle player input and events
             # self.handle_events()
+            self.handle_events()    # Check for user input or other events.
 
             # TODO: Update game objects
             # self.update()
+            if not self.game_over:
+                self.update()       # Only update if the game is not over.
 
             # TODO: Draw everything on the screen
             # self.draw()
+            self.draw()             # Draw everything on screen.
 
         pygame.quit()
 
