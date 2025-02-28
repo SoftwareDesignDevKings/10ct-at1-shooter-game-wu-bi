@@ -4,42 +4,35 @@ import random
 import os
 
 import app
+from player import Player
 
 class Game:
     def __init__(self):
-        pygame.init()  # Initialize Pygame
-
-        # TODO: Create a game window using Pygame
-        # self.screen = ?
+        pygame.init()  
 
         self.screen = pygame.display.set_mode((app.WIDTH, app.HEIGHT))
         pygame.display.set_caption("Shooter")
 
-        # TODO: Set up the game clock for frame rate control
-        # self.clock = ?
         self.clock = pygame.time.Clock()
 
-        # TODO: Load assets (e.g., fonts, images)
-        # self.font_small = ?
         self.assets = app.load_assets()
 
         font_path = os.path.join("assets", "PressStart2P.ttf")
         self.font_small = pygame.font.Font(font_path, 18)
         self.font_large = pygame.font.Font(font_path, 32)
 
-
-        # TODO: Set up game state variables
-        # self.running = True
-        self.running = True
-        self.game_over = False
-
-        # TODO: Create a random background
         self.background = self.create_random_background(
         app.WIDTH, app.HEIGHT, self.assets["floor_tiles"]
         )
 
-        
+        self.running = True
+        self.game_over = False
+
+        self.reset_game()
+
+
     def reset_game(self):
+        self.player = Player(app.WIDTH // 2, app.HEIGHT // 2, self.assets)
         self.game_over = False
 
     def create_random_background(self, width, height, floor_tiles):
@@ -56,23 +49,11 @@ class Game:
 
     def run(self):
         while self.running:
-            # pass
-            # TODO: Set a frame rate limit
-            # self.clock.tick( ? )
-            self.clock.tick(app.FPS)    # Control the game speed: at most FPS frames per second.
-
-            # TODO: Handle player input and events
-            # self.handle_events()
-            self.handle_events()    # Check for user input or other events.
-
-            # TODO: Update game objects
-            # self.update()
-            if not self.game_over:
-                self.update()       # Only update if the game is not over.
-
-            # TODO: Draw everything on the screen
-            # self.draw()
-            self.draw()             # Draw everything on screen.
+            self.clock.tick(app.FPS)    
+            self.handle_events()  
+            if (not self.game_over):
+                self.update()      
+            self.draw()     
 
         pygame.quit()
 
@@ -80,25 +61,19 @@ class Game:
         """Process user input (keyboard, mouse, quitting)."""
 
         for event in pygame.event.get():
-            # pass
-            # TODO: Allow the player to quit the game
-            # if event.type == ?:
-            #     self.running = False
             if event.type == pygame.QUIT:
                 self.running = False
 
     def update(self):
-        """Update the game state (player, enemies, etc.)."""
-        pass
+        self.player.handle_input()
+        self.player.update()
+        
 
     def draw(self):
         """Render all game elements to the screen."""
-        # pass
-        # TODO: Draw the background
-        # self.screen.blit(?, (0, 0))
         self.screen.blit(self.background, (0, 0))
 
-        # TODO: Draw player, enemies, UI elements
+        if not self.game_over:
+            self.player.draw(self.screen)
         
-        # Refresh the screen
         pygame.display.flip()
