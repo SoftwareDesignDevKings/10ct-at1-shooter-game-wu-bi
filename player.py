@@ -21,6 +21,7 @@ class Player:
 
 
         # TODO: 4. Add player health 
+        self.health = 5
 
     def handle_input(self):
         """Check and respond to keyboard/mouse input."""
@@ -83,4 +84,5 @@ class Player:
     def take_damage(self, amount):
         """Reduce the player's health by a given amount, not going below zero."""
         # TODO: self.health = max(0, self.health - amount)
+        self.health = max(0, self.health - amount)
         pass

@@ -62,7 +62,9 @@ class Game:
             self.clock.tick(app.FPS)    
             self.handle_events()  
             if (not self.game_over):
-                self.update()      
+                self.update()
+            if self.game_over:
+                break      
             self.draw()     
 
         pygame.quit()
@@ -82,6 +84,9 @@ class Game:
             enemy.update(self.player)
 
         self.check_player_enemy_collisions()
+        if self.player.health <= 0:
+            self.game_over = True
+            return
         self.spawn_enemies()
         
 
@@ -94,6 +99,10 @@ class Game:
 
         for enemy in self.enemies:
             enemy.draw(self.screen)
+
+        hp = max(0, min(self.player.health, 5))
+        health_img = self.assets["health"][hp]
+        self.screen.blit(health_img, (10, 10))
         
         pygame.display.flip()
     
@@ -129,7 +138,7 @@ class Game:
                 break
 
         if collided:
-            # self.player.take_damage(1)
+            self.player.take_damage(1)
             px, py = self.player.x, self.player.y
             for enemy in self.enemies:
                 enemy.set_knockback(px, py, app.PUSHBACK_DISTANCE)
