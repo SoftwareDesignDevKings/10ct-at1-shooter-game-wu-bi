@@ -6,6 +6,7 @@ import os
 import app
 from player import Player
 from enemy import Enemy
+import math
 
 class Game:
     def __init__(self):
