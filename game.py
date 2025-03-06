@@ -81,7 +81,15 @@ class Game:
                     if event.key == pygame.K_r:
                         self.reset_game()
                     elif event.key == pygame.K_ESCAPE:
-                        self.running = False            
+                        self.running = False  
+                else:
+                    if event.key == pygame.K_SPACE:
+                        nearest_enemy = self.find_nearest_enemy()
+                        if nearest_enemy:
+                            self.player.shoot_toward_enemy(nearest_enemy)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left mouse button
+                    self.player.shoot_toward_mouse(event.pos)         
 
     def update(self):
         self.player.handle_input()
@@ -91,6 +99,8 @@ class Game:
             enemy.update(self.player)
 
         self.check_player_enemy_collisions()
+        self.check_bullet_enemy_collisions()
+
         if self.player.health <= 0:
             self.game_over = True
             return
@@ -168,3 +178,23 @@ class Game:
             prompt_surf = self.font_small.render("Press R to Play Again or ESC to Quit", True, (255, 255, 255))
             prompt_rect = prompt_surf.get_rect(center=(app.WIDTH // 2, app.HEIGHT // 2 + 20))
             self.screen.blit(prompt_surf, prompt_rect)
+
+    def find_nearest_enemy(self):
+        if not self.enemies:
+            return None
+        nearest = None
+        min_dist = float('inf')
+        px, py = self.player.x, self.player.y
+        for enemy in self.enemies:
+            dist = math.sqrt((enemy.x - px)**2 + (enemy.y - py)**2)
+            if dist < min_dist:
+                min_dist = dist
+                nearest = enemy
+        return nearest
+    
+    def check_bullet_enemy_collisions(self):
+        for bullet in self.player.bullets:
+            for enemy in self.enemies:
+                if bullet.rect.colliderect(enemy.rect):
+                    self.player.bullets.remove(bullet)
+                    self.enemies.remove(enemy)
