@@ -5,8 +5,10 @@ import math
 class Enemy:
     def __init__(self, x, y, enemy_type, enemy_assets, speed=app.DEFAULT_ENEMY_SPEED):
         # TODO: Define attributes for X and Y
-        
-        # TODO: Define an attribute for movement speed
+        self.x = x
+        self.y = y
+        self.speed = speed       
+
         
         # TODO: Load animation frames
         self.frames = enemy_assets[enemy_type]
@@ -17,14 +19,15 @@ class Enemy:
         self.rect = self.image.get_rect(center=(self.x, self.y))
         
         # TODO: Define an attribute for enemy type
-        
-        # TODO: Track if enemy is facing left
-        
+        self.enemy_type = enemy_type 
+        self.facing_left = False
+
         # TODO: Define knockback properties
         
     def update(self, player):
         # TODO: Check if knockback is active and call apply_knockback()
-
+        self.move_toward_player(player)
+        self.animate()
         # TODO: If no knockback, move toward the player
 
         # TODO: Call animate() to update enemy sprite animation
@@ -45,7 +48,7 @@ class Enemy:
         
         # Updates enemy position
         self.rect.center = (self.x, self.y)
-        pass
+
 
     def apply_knockback(self):
         step = min(app.ENEMY_KNOCKBACK_SPEED, self.knockback_dist_remaining)
@@ -55,7 +58,7 @@ class Enemy:
         # Hint: apply the dx, dy attributes
         
         # TODO: Update facing direction based on knockback direction
-        pass
+
 
     def animate(self):
         self.animation_timer += 1
@@ -66,10 +69,15 @@ class Enemy:
             self.image = self.frames[self.frame_index]
             self.rect = self.image.get_rect()
             self.rect.center = center
-        pass
+
 
     def draw(self, surface):
         # TODO: Flip the sprite if facing left
+        if self.facing_left:
+            flipped_image = pygame.transform.flip(self.image, True, False)
+            surface.blit(flipped_image, self.rect)
+        else:
+            surface.blit(self.image, self.rect)
 
         # TODO: Draw enemy sprite on the given surface
         
