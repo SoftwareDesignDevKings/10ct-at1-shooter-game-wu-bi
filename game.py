@@ -6,7 +6,9 @@ import os
 import app
 from player import Player
 from enemy import Enemy
+from coin import Coin
 import math
+
 
 class Game:
     def __init__(self):
@@ -30,6 +32,8 @@ class Game:
         self.running = True
         self.game_over = False
 
+        self.coins = []
+
         self.enemies = []
         self.enemy_spawn_timer = 0
         self.enemy_spawn_interval = 60
@@ -43,6 +47,7 @@ class Game:
         self.enemies = []
         self.enemy_spawn_timer = 0
         self.enemies_per_spawn = 1
+        self.coins = []
 
         self.game_over = False
 
@@ -110,6 +115,9 @@ class Game:
     def draw(self):
         """Render all game elements to the screen."""
         self.screen.blit(self.background, (0, 0))
+
+        for coin in self.coins:
+            coin.draw(self.screen)        
 
         if not self.game_over:
             self.player.draw(self.screen)
@@ -194,7 +202,14 @@ class Game:
     
     def check_bullet_enemy_collisions(self):
         for bullet in self.player.bullets:
+
             for enemy in self.enemies:
+
                 if bullet.rect.colliderect(enemy.rect):
                     self.player.bullets.remove(bullet)
+
+
+                    new_coin = Coin(enemy.x, enemy.y)
+                    self.coins.append(new_coin)  
                     self.enemies.remove(enemy)
+                    break
