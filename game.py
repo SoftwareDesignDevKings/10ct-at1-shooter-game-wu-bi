@@ -81,6 +81,7 @@ class Game:
         for enemy in self.enemies:
             enemy.update(self.player)
 
+        self.check_player_enemy_collisions()
         self.spawn_enemies()
         
 
@@ -119,3 +120,16 @@ class Game:
                 enemy_type = random.choice(list(self.assets["enemies"].keys()))
                 enemy = Enemy(x, y, enemy_type, self.assets["enemies"])
                 self.enemies.append(enemy)
+
+    def check_player_enemy_collisions(self):
+        collided = False
+        for enemy in self.enemies:
+            if enemy.rect.colliderect(self.player.rect):
+                collided = True
+                break
+
+        if collided:
+            # self.player.take_damage(1)
+            px, py = self.player.x, self.player.y
+            for enemy in self.enemies:
+                enemy.set_knockback(px, py, app.PUSHBACK_DISTANCE)

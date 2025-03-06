@@ -23,16 +23,22 @@ class Enemy:
         self.facing_left = False
 
         # TODO: Define knockback properties
+        self.knockback_dist_remaining = 0
+        self.knockback_dx = 0
+        self.knockback_dy = 0
         
     def update(self, player):
         # TODO: Check if knockback is active and call apply_knockback()
-        self.move_toward_player(player)
+        if self.knockback_dist_remaining > 0:
+            self.apply_knockback()
+        else:
+            self.move_toward_player(player)
         self.animate()
+
         # TODO: If no knockback, move toward the player
 
         # TODO: Call animate() to update enemy sprite animation
 
-        pass
 
     def move_toward_player(self, player):
         # Calculates direction vector toward player
@@ -57,7 +63,15 @@ class Enemy:
         # TODO: Apply knockback effect to enemy position 
         # Hint: apply the dx, dy attributes
         
-        # TODO: Update facing direction based on knockback direction
+        self.x += self.knockback_dx * step
+        self.y += self.knockback_dy * step
+
+        if self.knockback_dx < 0:
+            self.facing_left = True
+        else:
+            self.facing_left = False
+
+        self.rect.center = (self.x, self.y)
 
 
     def animate(self):
@@ -81,7 +95,6 @@ class Enemy:
 
         # TODO: Draw enemy sprite on the given surface
         
-        pass
 
     def set_knockback(self, px, py, dist):
         dx = self.x - px
@@ -91,4 +104,3 @@ class Enemy:
             self.knockback_dx = dx / length
             self.knockback_dy = dy / length
             self.knockback_dist_remaining = dist
-        pass
