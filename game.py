@@ -105,6 +105,7 @@ class Game:
 
         self.check_player_enemy_collisions()
         self.check_bullet_enemy_collisions()
+        self.check_player_coin_collisions()
 
         if self.player.health <= 0:
             self.game_over = True
@@ -128,6 +129,9 @@ class Game:
         hp = max(0, min(self.player.health, 5))
         health_img = self.assets["health"][hp]
         self.screen.blit(health_img, (10, 10))
+
+        xp_text_surf = self.font_small.render(f"XP: {self.player.xp}", True, (255, 255, 255))
+        self.screen.blit(xp_text_surf, (10, 70))
         
         if self.game_over:
             self.draw_game_over_screen()
@@ -212,4 +216,14 @@ class Game:
                     new_coin = Coin(enemy.x, enemy.y)
                     self.coins.append(new_coin)  
                     self.enemies.remove(enemy)
-                    break
+
+    def check_player_coin_collisions(self):
+        coins_collected = []
+        for coin in self.coins:
+            if coin.rect.colliderect(self.player.rect):
+                coins_collected.append(coin)
+                self.player.add_xp(1)
+
+        for c in coins_collected:
+            if c in self.coins:
+                self.coins.remove(c) 

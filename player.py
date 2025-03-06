@@ -24,6 +24,7 @@ class Player:
 
 
         # TODO: 4. Add player health 
+        self.xp = 0
         self.health = 5
         
         self.bullet_speed = 10
@@ -139,3 +140,6 @@ class Player:
 
     def shoot_toward_enemy(self, enemy):
         self.shoot_toward_position(enemy.x, enemy.y)
+
+    def add_xp(self, amount):
+        self.xp += amount
