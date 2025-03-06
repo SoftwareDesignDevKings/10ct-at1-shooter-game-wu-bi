@@ -61,10 +61,10 @@ class Game:
         while self.running:
             self.clock.tick(app.FPS)    
             self.handle_events()  
+
             if (not self.game_over):
                 self.update()
-            if self.game_over:
-                break      
+    
             self.draw()     
 
         pygame.quit()
@@ -75,6 +75,12 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if self.game_over:
+                    if event.key == pygame.K_r:
+                        self.reset_game()
+                    elif event.key == pygame.K_ESCAPE:
+                        self.running = False            
 
     def update(self):
         self.player.handle_input()
@@ -104,6 +110,9 @@ class Game:
         health_img = self.assets["health"][hp]
         self.screen.blit(health_img, (10, 10))
         
+        if self.game_over:
+            self.draw_game_over_screen()
+
         pygame.display.flip()
     
     def spawn_enemies(self):
@@ -142,3 +151,19 @@ class Game:
             px, py = self.player.x, self.player.y
             for enemy in self.enemies:
                 enemy.set_knockback(px, py, app.PUSHBACK_DISTANCE)
+
+    def draw_game_over_screen(self):
+            # Dark overlay
+            overlay = pygame.Surface((app.WIDTH, app.HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 180))
+            self.screen.blit(overlay, (0, 0))
+
+            # Game Over text
+            game_over_surf = self.font_large.render("GAME OVER!", True, (255, 0, 0))
+            game_over_rect = game_over_surf.get_rect(center=(app.WIDTH // 2, app.HEIGHT // 2 - 50))
+            self.screen.blit(game_over_surf, game_over_rect)
+
+            # Prompt to restart or quit
+            prompt_surf = self.font_small.render("Press R to Play Again or ESC to Quit", True, (255, 255, 255))
+            prompt_rect = prompt_surf.get_rect(center=(app.WIDTH // 2, app.HEIGHT // 2 + 20))
+            self.screen.blit(prompt_surf, prompt_rect)
