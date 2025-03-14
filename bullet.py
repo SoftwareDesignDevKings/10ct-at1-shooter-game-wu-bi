@@ -7,6 +7,7 @@ class Bullet:
         self.vx = vx
         self.vy = vy
         self.size = size
+        self.damage = 1
 
         self.image = app.pygame.Surface((self.size, self.size), app.pygame.SRCALPHA)
         self.image.fill((255, 255, 255))

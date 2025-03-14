@@ -34,6 +34,16 @@ class Player:
         self.shoot_timer = 0
         self.bullets = []
 
+        self.has_shield = False
+        self.shield_timer = 0
+        self.original_speed = app.PLAYER_SPEED
+        self.speed_boost_active = False
+        self.speed_boost_timer = 0
+        self.damage_multiplier = 1
+        self.damage_boost_timer = 0
+
+        self.level = 1
+
     def handle_input(self):
         """Check and respond to keyboard/mouse input."""
 
@@ -88,6 +98,22 @@ class Player:
             self.rect = self.image.get_rect()
             self.rect.center = center
 
+        if self.has_shield:
+            self.shield_timer -= 1
+        if self.shield_timer <= 0:
+            self.has_shield = False
+    
+        if self.speed_boost_active:
+            self.speed_boost_timer -= 1
+            if self.speed_boost_timer <= 0:
+                self.speed_boost_active = False
+                self.speed = self.original_speed
+        
+        if self.damage_multiplier > 1:
+            self.damage_boost_timer -= 1
+            if self.damage_boost_timer <= 0:
+                self.damage_multiplier = 1
+
     def draw(self, surface):
         """Draw the player on the screen."""
         
@@ -97,6 +123,14 @@ class Player:
         else:
             surface.blit(self.image, self.rect)
         
+        if self.has_shield:
+            shield_surface = pygame.Surface((self.rect.width + 10, self.rect.height + 10), pygame.SRCALPHA)
+            pygame.draw.circle(shield_surface, (0, 0, 255, 128), 
+                            (shield_surface.get_width() // 2, shield_surface.get_height() // 2),
+                            max(self.rect.width, self.rect.height) // 2 + 5)
+            shield_rect = shield_surface.get_rect(center=self.rect.center)
+            surface.blit(shield_surface, shield_rect)
+
         for bullet in self.bullets:
             bullet.draw(surface)
 
@@ -104,6 +138,12 @@ class Player:
         """Reduce the player's health by a given amount, not going below zero."""
         # TODO: self.health = max(0, self.health - amount)
         self.health = max(0, self.health - amount)
+        if self.has_shield:
+            # Shield absorbs the damage
+            self.has_shield = False
+            self.shield_timer = 0
+        else:
+            self.health = max(0, self.health - amount)
 
     def shoot_toward_position(self, tx, ty):
         if self.shoot_timer >= self.shoot_cooldown:
@@ -131,6 +171,7 @@ class Player:
             final_vy = math.sin(angle) * self.bullet_speed
 
             bullet = Bullet(self.x, self.y, final_vx, final_vy, self.bullet_size)
+            bullet.damage = bullet.damage * self.damage_multiplier
             self.bullets.append(bullet)
         self.shoot_timer = 0
     
@@ -143,3 +184,16 @@ class Player:
 
     def add_xp(self, amount):
         self.xp += amount
+
+
+    def apply_powerup(self, powerup_type, duration):
+        if powerup_type == "shield":
+            self.has_shield = True
+            self.shield_timer = duration
+        elif powerup_type == "speed":
+            self.speed_boost_active = True
+            self.speed = self.original_speed * 1.5  # 50% speed boost
+            self.speed_boost_timer = duration
+        elif powerup_type == "damage":
+            self.damage_multiplier = 2  # Double damage
+            self.damage_boost_timer = duration
