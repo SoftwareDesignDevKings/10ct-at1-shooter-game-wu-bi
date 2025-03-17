@@ -43,7 +43,7 @@ class Player:
         self.damage_boost_timer = 0
         self.magnet_active = False
         self.magnet_timer = 0
-        self.magnet_radius = 200
+        self.magnet_radius = 175
 
         self.level = 1
 

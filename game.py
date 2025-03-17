@@ -251,6 +251,9 @@ class Game:
         return nearest
     
     def check_bullet_enemy_collisions(self):
+        bullets_to_remove = []
+        enemies_to_remove = []
+
         for bullet in self.player.bullets:
 
             for enemy in self.enemies:
@@ -262,6 +265,15 @@ class Game:
                     new_coin = Coin(enemy.x, enemy.y)
                     self.coins.append(new_coin)  
                     self.enemies.remove(enemy)
+                    break
+
+        for bullet in bullets_to_remove:
+            if bullet in self.player.bullets:
+                self.player.bullets.remove(bullet)
+    
+        for enemy in enemies_to_remove:
+            if enemy in self.enemies:
+                self.enemies.remove(enemy)
 
     def check_player_coin_collisions(self):
         coins_collected = []
