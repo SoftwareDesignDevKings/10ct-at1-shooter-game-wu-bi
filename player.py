@@ -17,6 +17,10 @@ class Player:
         self.animation_timer = 0
         self.animation_speed = 8
 
+        self.invulnerable = False
+        self.invulnerable_time = 60
+        self.invulnerable_timer = 0
+
 
         self.image = self.animations[self.state][self.frame_index]
         self.rect = self.image.get_rect(center=(self.x, self.y))
@@ -86,6 +90,10 @@ class Player:
             self.facing_left = False
 
     def update(self):
+        if self.invulnerable == True:
+            self.invulnerable_timer -= 1
+            if self.invulnerable_timer <= 0:
+                self.invulnerable = False
         for bullet in self.bullets:
             bullet.update()
             if bullet.y < 0 or bullet.y > app.HEIGHT or bullet.x < 0 or bullet.x > app.WIDTH:
@@ -151,15 +159,18 @@ class Player:
             bullet.draw(surface)
 
     def take_damage(self, amount):
+        if self.invulnerable == True:
+            return
         """Reduce the player's health by a given amount, not going below zero."""
         # TODO: self.health = max(0, self.health - amount)
-        self.health = max(0, self.health - amount)
         if self.has_shield:
             # Shield absorbs the damage
             self.has_shield = False
             self.shield_timer = 0
         else:
             self.health = max(0, self.health - amount)
+            self.invulnerable_timer = self.invulnerable_time
+            self.invulnerable = True
 
     def shoot_toward_position(self, tx, ty):
         if self.shoot_timer >= self.shoot_cooldown:
