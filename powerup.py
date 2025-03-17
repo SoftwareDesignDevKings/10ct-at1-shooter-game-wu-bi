@@ -15,6 +15,8 @@ class PowerUp:
             self.color = (0, 255, 0)  # Green for speed
         elif type == "damage":
             self.color = (255, 0, 0)  # Red for damage multiplier
+        elif type == "magnet":
+            self.color = (255, 255, 0)  # Yellow for magnet
         else:
             self.color = (255, 255, 255)  # White for unknown
         
@@ -26,4 +28,4 @@ class PowerUp:
         surface.blit(self.image, self.rect)
     
     def get_random_type():
-        return random.choice(["shield", "speed", "damage"])
+        return random.choice(["shield", "speed", "damage", "magnet"])

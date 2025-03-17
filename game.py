@@ -1,4 +1,3 @@
-# game.py
 import pygame
 import random
 import os
@@ -121,6 +120,8 @@ class Game:
         for enemy in self.enemies:
             enemy.update(self.player)
 
+        self.attract_coins()
+
         self.check_player_enemy_collisions()
         self.check_bullet_enemy_collisions()
         self.check_player_coin_collisions()
@@ -129,6 +130,7 @@ class Game:
         if self.player.health <= 0:
             self.game_over = True
             return
+        
         self.spawn_enemies()
         self.check_for_level_up()
 
@@ -347,3 +349,25 @@ class Game:
                 self.powerups.remove(p)
 
         
+    def attract_coins(self):
+        magnet_radius = self.player.magnet_radius
+        if not self.player.magnet_active:
+            return
+        attraction_speed = 7
+        
+        for coin in self.coins:
+            # Calculate distance between player and coin
+            dx = self.player.x - coin.x
+            dy = self.player.y - coin.y
+            distance = (dx**2 + dy**2)**0.5
+            
+            # If coin is within magnet radius, move it toward player
+            if distance <= magnet_radius and distance > 0:
+                # Calculate movement vector
+                move_x = (dx / distance) * attraction_speed
+                move_y = (dy / distance) * attraction_speed
+                
+                # Move the coin toward player
+                coin.x += move_x
+                coin.y += move_y
+                coin.rect.center = (coin.x, coin.y)

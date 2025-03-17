@@ -41,6 +41,9 @@ class Player:
         self.speed_boost_timer = 0
         self.damage_multiplier = 1
         self.damage_boost_timer = 0
+        self.magnet_active = False
+        self.magnet_timer = 0
+        self.magnet_radius = 200
 
         self.level = 1
 
@@ -113,6 +116,11 @@ class Player:
             self.damage_boost_timer -= 1
             if self.damage_boost_timer <= 0:
                 self.damage_multiplier = 1
+        
+        if self.magnet_active:
+            self.magnet_timer -= 1
+            if self.magnet_timer <= 0:
+                self.magnet_active = False
 
     def draw(self, surface):
         """Draw the player on the screen."""
@@ -130,6 +138,14 @@ class Player:
                             max(self.rect.width, self.rect.height) // 2 + 5)
             shield_rect = shield_surface.get_rect(center=self.rect.center)
             surface.blit(shield_surface, shield_rect)
+
+        if self.magnet_active:
+            magnet_surface = pygame.Surface((self.magnet_radius * 2, self.magnet_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(magnet_surface, (255, 255, 0, 30), 
+                            (magnet_surface.get_width() // 2, magnet_surface.get_height() // 2),
+                            self.magnet_radius)
+            magnet_rect = magnet_surface.get_rect(center=self.rect.center)
+            surface.blit(magnet_surface, magnet_rect)
 
         for bullet in self.bullets:
             bullet.draw(surface)
@@ -197,3 +213,6 @@ class Player:
         elif powerup_type == "damage":
             self.damage_multiplier = 2  # Double damage
             self.damage_boost_timer = duration
+        elif powerup_type == "magnet":
+            self.magnet_active = True
+            self.magnet_timer = duration
