@@ -7,6 +7,7 @@ from player import Player
 from enemy import Enemy
 from coin import Coin
 from powerup import PowerUp
+from healthpack import HealthPack
 import math
 
 
@@ -33,6 +34,7 @@ class Game:
         self.game_over = False
 
         self.coins = []
+        self.healthpacks = []
 
         self.enemies = []
         self.enemy_spawn_timer = 0
@@ -56,6 +58,7 @@ class Game:
         self.enemies_per_spawn = 1
         self.coins = []
         self.powerups = []
+        self.healthpacks = []
 
         self.game_over = False
 
@@ -126,6 +129,7 @@ class Game:
         self.check_bullet_enemy_collisions()
         self.check_player_coin_collisions()
         self.check_player_powerup_collisions()
+        self.check_player_healthpack_collisions()
 
         if self.player.health <= 0:
             self.game_over = True
@@ -152,6 +156,9 @@ class Game:
 
         for enemy in self.enemies:
             enemy.draw(self.screen)
+
+        for healthpack in self.healthpacks:  # Draw health packs
+            healthpack.draw(self.screen) 
 
         hp = max(0, min(self.player.health, 5))
         health_img = self.assets["health"][hp]
@@ -260,10 +267,13 @@ class Game:
 
                 if bullet.rect.colliderect(enemy.rect):
                     self.player.bullets.remove(bullet)
-
-
                     new_coin = Coin(enemy.x, enemy.y)
-                    self.coins.append(new_coin)  
+                    self.coins.append(new_coin) 
+
+                    if random.randint(1, 15) == 1:
+                        new_healthpack = HealthPack(enemy.x, enemy.y)
+                        self.healthpacks.append(new_healthpack)
+                     
                     self.enemies.remove(enemy)
                     break
 
@@ -285,6 +295,20 @@ class Game:
         for c in coins_collected:
             if c in self.coins:
                 self.coins.remove(c) 
+
+    def check_player_healthpack_collisions(self):
+        """Check if player collides with any health packs and collect them."""
+        healthpacks_collected = []
+        for healthpack in self.healthpacks:
+            if healthpack.rect.colliderect(self.player.rect):
+                healthpacks_collected.append(healthpack)
+                # Restore 1 health point but don't exceed max health (5)
+                if self.player.health < 5:
+                    self.player.health += 1
+                    
+        for x in healthpacks_collected:
+            if x in self.healthpacks:
+                self.healthpacks.remove(x)
 
     def pick_random_upgrades(self, num):
         possible_upgrades = [
