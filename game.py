@@ -40,6 +40,7 @@ class Game:
         self.enemy_spawn_timer = 0
         self.enemy_spawn_interval = 60
         self.enemies_per_spawn = 1
+        self.enemy_health_multiplier = 1.0
 
         self.powerups = []
         self.powerup_spawn_timer = 0
@@ -56,6 +57,7 @@ class Game:
         self.enemies = []
         self.enemy_spawn_timer = 0
         self.enemies_per_spawn = 1
+        self.enemy_health_multiplier = 1.0
         self.coins = []
         self.powerups = []
         self.healthpacks = []
@@ -172,6 +174,12 @@ class Game:
         xp_next_surf = self.font_small.render(f"Next Lvl XP: {xp_to_next}", True, (255, 255, 255))
         self.screen.blit(xp_next_surf, (10, 100))
 
+        level_surf = self.font_small.render(f"Level: {self.player.level}", True, (255, 255, 0))
+        self.screen.blit(level_surf, (10, 130))
+
+        # enemy_health_surf = self.font_small.render(f"Enemy HP: x{self.enemy_health_multiplier:.1f}", True, (255, 100, 100))
+        # self.screen.blit(enemy_health_surf, (10, 130))
+
 
         if self.game_over:
             self.draw_game_over_screen()
@@ -202,7 +210,7 @@ class Game:
                     y = random.randint(0, app.HEIGHT)
 
                 enemy_type = random.choice(list(self.assets["enemies"].keys()))
-                enemy = Enemy(x, y, enemy_type, self.assets["enemies"])
+                enemy = Enemy(x, y, enemy_type, self.assets["enemies"], health_multiplier=self.enemy_health_multiplier)
                 self.enemies.append(enemy)
 
     def check_player_enemy_collisions(self):
@@ -266,16 +274,19 @@ class Game:
             for enemy in self.enemies:
 
                 if bullet.rect.colliderect(enemy.rect):
-                    self.player.bullets.remove(bullet)
-                    new_coin = Coin(enemy.x, enemy.y)
-                    self.coins.append(new_coin) 
+                    bullets_to_remove.append(bullet)
+                # Apply damage to enemy
+                    enemy_killed = enemy.take_damage(bullet.damage)
+                
+                    if enemy_killed:
+                    # Enemy is dead, drop a coin
+                        new_coin = Coin(enemy.x, enemy.y)
+                        self.coins.append(new_coin) 
 
-                    if random.randint(1, 15) == 1:
-                        new_healthpack = HealthPack(enemy.x, enemy.y)
-                        self.healthpacks.append(new_healthpack)
-                     
-                    self.enemies.remove(enemy)
-                    break
+                        if random.randint(1, 45) == 1:
+                            new_healthpack = HealthPack(enemy.x, enemy.y)
+                            self.healthpacks.append(new_healthpack)
+                        enemies_to_remove.append(enemy)
 
         for bullet in bullets_to_remove:
             if bullet in self.player.bullets:
@@ -359,6 +370,7 @@ class Game:
 
             # Increase enemy spawns each time we level up
             self.enemies_per_spawn += 1
+            self.enemy_health_multiplier += 0.2
 
     def spawn_powerups(self):
         self.powerup_spawn_timer += 1

@@ -3,14 +3,12 @@ import app
 import math
 
 class Enemy:
-    def __init__(self, x, y, enemy_type, enemy_assets, speed=app.DEFAULT_ENEMY_SPEED):
-        # TODO: Define attributes for X and Y
+    def __init__(self, x, y, enemy_type, enemy_assets, speed=app.DEFAULT_ENEMY_SPEED, health_multiplier=1):
         self.x = x
         self.y = y
         self.speed = speed       
 
         
-        # TODO: Load animation frames
         self.frames = enemy_assets[enemy_type]
         self.frame_index = 0
         self.animation_timer = 0
@@ -18,14 +16,20 @@ class Enemy:
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(center=(self.x, self.y))
         
-        # TODO: Define an attribute for enemy type
         self.enemy_type = enemy_type 
         self.facing_left = False
 
-        # TODO: Define knockback properties
         self.knockback_dist_remaining = 0
         self.knockback_dx = 0
         self.knockback_dy = 0
+
+        self.base_health = 2
+        self.max_health = int(self.base_health * health_multiplier)
+        self.health = self.max_health
+        self.health_bar_width = 40
+        self.health_bar_height = 5
+        self.health_bar_padding = 2
+
         
     def update(self, player):
         # TODO: Check if knockback is active and call apply_knockback()
@@ -92,9 +96,26 @@ class Enemy:
             surface.blit(flipped_image, self.rect)
         else:
             surface.blit(self.image, self.rect)
+        
+        self.draw_health_bar(surface)
 
         # TODO: Draw enemy sprite on the given surface
         
+    def draw_health_bar(self, surface):
+        # Health bar position (above the enemy)
+        bar_x = self.rect.centerx - self.health_bar_width // 2
+        bar_y = self.rect.top - 10  # 10 pixels above the enemy
+        
+        # Draw background (empty health bar)
+        pygame.draw.rect(surface, (255, 0, 0), (bar_x, bar_y, self.health_bar_width, self.health_bar_height))
+        
+        # Calculate filled portion of health bar
+        fill_width = int((self.health / self.max_health) * self.health_bar_width)
+        
+        # Draw filled portion (green)
+        if fill_width > 0:
+            pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, fill_width, self.health_bar_height))
+
 
     def set_knockback(self, px, py, dist):
         dx = self.x - px
@@ -104,3 +125,7 @@ class Enemy:
             self.knockback_dx = dx / length
             self.knockback_dy = dy / length
             self.knockback_dist_remaining = dist
+
+    def take_damage(self, amount):
+        self.health -= amount
+        return self.health <= 0
