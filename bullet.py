@@ -8,6 +8,10 @@ class Bullet:
         self.vy = vy
         self.size = size
         self.damage = 1
+        self.pierce_count = 0
+        self.max_pierce = 0
+        self.hit_enemies = set()
+
 
         self.image = app.pygame.Surface((self.size, self.size), app.pygame.SRCALPHA)
         self.image.fill((255, 255, 255))
@@ -20,3 +24,6 @@ class Bullet:
     
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
+    def can_hit_enemy(self, enemy):
+        return enemy not in self.hit_enemies

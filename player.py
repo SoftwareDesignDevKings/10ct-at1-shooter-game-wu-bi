@@ -38,6 +38,9 @@ class Player:
         self.shoot_timer = 0
         self.bullets = []
 
+        self.bullet_base_damage = 1
+        self.bullet_pierce = 0
+
         self.has_shield = False
         self.shield_timer = 0
         self.original_speed = app.PLAYER_SPEED
@@ -61,13 +64,13 @@ class Player:
         vel_x, vel_y = 0, 0
 
         # TODO: 2. Adjust player position with keys pressed, updating the player position to vel_x and vel_y
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             vel_x -= self.speed
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             vel_x += self.speed
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             vel_y -= self.speed
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             vel_y += self.speed
 
         self.x += vel_x
@@ -198,7 +201,8 @@ class Player:
             final_vy = math.sin(angle) * self.bullet_speed
 
             bullet = Bullet(self.x, self.y, final_vx, final_vy, self.bullet_size)
-            bullet.damage = bullet.damage * self.damage_multiplier
+            bullet.damage = self.bullet_base_damage * self.damage_multiplier
+            bullet.max_pierce = self.bullet_pierce
             self.bullets.append(bullet)
         self.shoot_timer = 0
     

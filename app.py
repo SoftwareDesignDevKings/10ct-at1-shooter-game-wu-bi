@@ -65,6 +65,9 @@ def load_assets():
         "demon":  load_frames("demon",  4, scale_factor=ENEMY_SCALE_FACTOR),
     }
 
+    # Boss
+    assets["boss"] = load_frames("boss", 4, scale_factor=ENEMY_SCALE_FACTOR * 0.125)
+
     # Player
     assets["player"] = {
         "idle": load_frames("player_idle", 4, scale_factor=PLAYER_SCALE_FACTOR),

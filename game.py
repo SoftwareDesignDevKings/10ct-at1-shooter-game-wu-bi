@@ -8,6 +8,7 @@ from enemy import Enemy
 from coin import Coin
 from powerup import PowerUp
 from healthpack import HealthPack
+from boss import Boss
 import math
 
 
@@ -49,6 +50,10 @@ class Game:
         self.in_level_up_menu = False
         self.upgrade_options = []
 
+        self.boss = None
+        self.boss_spawned = False
+        self.should_spawn_boss = False
+
         self.reset_game()
 
 
@@ -61,6 +66,9 @@ class Game:
         self.coins = []
         self.powerups = []
         self.healthpacks = []
+        self.boss = None
+        self.boss_spawned = False
+        self.should_spawn_boss = False  # Add this flag
 
         self.game_over = False
 
@@ -107,8 +115,8 @@ class Game:
                             if nearest_enemy:
                                 self.player.shoot_toward_enemy(nearest_enemy)
                     else:
-                        if event.key in [pygame.K_1, pygame.K_2, pygame.K_3]:
-                            index = event.key - pygame.K_1  # 0,1,2
+                        if event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]:
+                            index = event.key - pygame.K_1  # 0,1,2,3
                             if 0 <= index < len(self.upgrade_options):
                                 upgrade = self.upgrade_options[index]
                                 self.apply_upgrade(self.player, upgrade)
@@ -119,6 +127,9 @@ class Game:
                     self.player.shoot_toward_mouse(event.pos)         
 
     def update(self):
+        if self.in_level_up_menu:
+            return
+
         self.player.handle_input()
         self.player.update()
 
@@ -137,8 +148,21 @@ class Game:
             self.game_over = True
             return
         
+        if self.should_spawn_boss and not self.in_level_up_menu:
+            self.spawn_boss()
+            self.should_spawn_boss = False
+        
+        if hasattr(self, 'should_spawn_boss') and self.should_spawn_boss and not self.in_level_up_menu:
+            self.spawn_boss()
+            self.should_spawn_boss = False
+
         self.spawn_enemies()
         self.check_for_level_up()
+
+        if self.boss:
+            self.boss.update(self.player)
+            self.check_boss_player_collisions()
+            self.check_bullet_boss_collisions()
 
         self.spawn_powerups()
         
@@ -152,6 +176,10 @@ class Game:
 
         for powerup in self.powerups:
             powerup.draw(self.screen)        
+
+        # Draw boss before player and UI elements (so it appears behind overlays)
+        if self.boss:
+            self.boss.draw(self.screen)
 
         if not self.game_over:
             self.player.draw(self.screen)
@@ -169,7 +197,7 @@ class Game:
         xp_text_surf = self.font_small.render(f"XP: {self.player.xp}", True, (255, 255, 255))
         self.screen.blit(xp_text_surf, (10, 70))
 
-        next_level_xp = self.player.level * self.player.level * 5
+        next_level_xp = self.player.level * self.player.level * 6
         xp_to_next = max(0, next_level_xp - self.player.xp)
         xp_next_surf = self.font_small.render(f"Next Lvl XP: {xp_to_next}", True, (255, 255, 255))
         self.screen.blit(xp_next_surf, (10, 100))
@@ -177,10 +205,7 @@ class Game:
         level_surf = self.font_small.render(f"Level: {self.player.level}", True, (255, 255, 0))
         self.screen.blit(level_surf, (10, 130))
 
-        # enemy_health_surf = self.font_small.render(f"Enemy HP: x{self.enemy_health_multiplier:.1f}", True, (255, 100, 100))
-        # self.screen.blit(enemy_health_surf, (10, 130))
-
-
+        # Draw overlays after game elements
         if self.game_over:
             self.draw_game_over_screen()
 
@@ -190,28 +215,30 @@ class Game:
         pygame.display.flip()
     
     def spawn_enemies(self):
-        self.enemy_spawn_timer += 1
-        if self.enemy_spawn_timer >= self.enemy_spawn_interval:
-            self.enemy_spawn_timer = 0
-
+        if not self.boss_spawned:
             for _ in range(self.enemies_per_spawn):
-                side = random.choice(["top", "bottom", "left", "right"])
-                if side == "top":
-                    x = random.randint(0, app.WIDTH)
-                    y = -app.SPAWN_MARGIN
-                elif side == "bottom":
-                    x = random.randint(0, app.WIDTH)
-                    y = app.HEIGHT + app.SPAWN_MARGIN
-                elif side == "left":
-                    x = -app.SPAWN_MARGIN
-                    y = random.randint(0, app.HEIGHT)
-                else:
-                    x = app.WIDTH + app.SPAWN_MARGIN
-                    y = random.randint(0, app.HEIGHT)
+                self.enemy_spawn_timer += 1
+                if self.enemy_spawn_timer >= self.enemy_spawn_interval:
+                    self.enemy_spawn_timer = 0
 
-                enemy_type = random.choice(list(self.assets["enemies"].keys()))
-                enemy = Enemy(x, y, enemy_type, self.assets["enemies"], health_multiplier=self.enemy_health_multiplier)
-                self.enemies.append(enemy)
+                    for _ in range(self.enemies_per_spawn):
+                        side = random.choice(["top", "bottom", "left", "right"])
+                        if side == "top":
+                            x = random.randint(0, app.WIDTH)
+                            y = -app.SPAWN_MARGIN
+                        elif side == "bottom":
+                            x = random.randint(0, app.WIDTH)
+                            y = app.HEIGHT + app.SPAWN_MARGIN
+                        elif side == "left":
+                            x = -app.SPAWN_MARGIN
+                            y = random.randint(0, app.HEIGHT)
+                        else:
+                            x = app.WIDTH + app.SPAWN_MARGIN
+                            y = random.randint(0, app.HEIGHT)
+
+                        enemy_type = random.choice(list(self.assets["enemies"].keys()))
+                        enemy = Enemy(x, y, enemy_type, self.assets["enemies"], health_multiplier=self.enemy_health_multiplier)
+                        self.enemies.append(enemy)
 
     def check_player_enemy_collisions(self):
         collided = False
@@ -263,6 +290,13 @@ class Game:
             if dist < min_dist:
                 min_dist = dist
                 nearest = enemy
+        
+        if self.boss:
+            boss_dist = math.sqrt((self.boss.x - px)**2 + (self.boss.y - py)**2)
+            if boss_dist < min_dist:
+                min_dist = boss_dist
+                nearest = self.boss
+
         return nearest
     
     def check_bullet_enemy_collisions(self):
@@ -274,19 +308,30 @@ class Game:
             for enemy in self.enemies:
 
                 if bullet.rect.colliderect(enemy.rect):
-                    bullets_to_remove.append(bullet)
-                # Apply damage to enemy
-                    enemy_killed = enemy.take_damage(bullet.damage)
-                
-                    if enemy_killed:
-                    # Enemy is dead, drop a coin
-                        new_coin = Coin(enemy.x, enemy.y)
-                        self.coins.append(new_coin) 
+                    if bullet.can_hit_enemy(enemy):
+                        # Mark this enemy as hit by this bullet
+                        bullet.hit_enemies.add(enemy)
+                        
+                        # Apply damage with damage multiplier
+                        enemy_killed = enemy.take_damage(bullet.damage * self.player.damage_multiplier)
+                    
+                        # Increment pierce count
+                        bullet.pierce_count += 1
 
-                        if random.randint(1, 45) == 1:
-                            new_healthpack = HealthPack(enemy.x, enemy.y)
-                            self.healthpacks.append(new_healthpack)
-                        enemies_to_remove.append(enemy)
+                        if enemy_killed:
+                            # Enemy is dead, drop a coin
+                            new_coin = Coin(enemy.x, enemy.y)
+                            self.coins.append(new_coin) 
+
+                            if random.randint(1, 45) == 1:
+                                new_healthpack = HealthPack(enemy.x, enemy.y)
+                                self.healthpacks.append(new_healthpack)
+                            enemies_to_remove.append(enemy)
+
+                        # Check if bullet should be removed based on pierce count
+                        if bullet.pierce_count > bullet.max_pierce:
+                            bullets_to_remove.append(bullet)
+                            break
 
         for bullet in bullets_to_remove:
             if bullet in self.player.bullets:
@@ -321,12 +366,18 @@ class Game:
             if x in self.healthpacks:
                 self.healthpacks.remove(x)
 
+    def check_boss_player_collisions(self):
+        if self.boss and self.boss.rect.colliderect(self.player.rect):
+            self.player.take_damage(1)
+
     def pick_random_upgrades(self, num):
         possible_upgrades = [
             {"name": "Bigger Bullet",  "desc": "Bullet size +5"},
             {"name": "Faster Bullet",  "desc": "Bullet speed +2"},
             {"name": "Extra Bullet",   "desc": "Fire additional bullet"},
             {"name": "Shorter Cooldown", "desc": "Shoot more frequently"},
+            {"name": "Increased Damage", "desc": "Bullet damage +1"},
+            {"name": "Bullet Pierce", "desc": "Bullets pierce +1"},
         ]
         return random.sample(possible_upgrades, k=num)
     
@@ -340,6 +391,10 @@ class Game:
             player.bullet_count += 1
         elif name == "Shorter Cooldown":
             player.shoot_cooldown = max(1, int(player.shoot_cooldown * 0.8))
+        elif name == "Increased Damage":
+            player.bullet_base_damage += 1
+        elif name == "Bullet Pierce":
+            player.bullet_pierce += 1
 
     def draw_upgrade_menu(self):
         # Dark overlay behind the menu
@@ -361,16 +416,62 @@ class Game:
             self.screen.blit(option_surf, option_rect)
 
     def check_for_level_up(self):
-        xp_needed = self.player.level * self.player.level * 5
+        xp_needed = self.player.level * self.player.level * 1
         if self.player.xp >= xp_needed:
             # Leveled up
             self.player.level += 1
             self.in_level_up_menu = True
-            self.upgrade_options = self.pick_random_upgrades(3)
+            self.upgrade_options = self.pick_random_upgrades(4)
 
             # Increase enemy spawns each time we level up
-            self.enemies_per_spawn += 1
-            self.enemy_health_multiplier += 0.2
+            if self.player.level % 2 == 0:
+                self.enemies_per_spawn += 1
+
+                # Increase enemy health each time we level up
+            if self.enemy_health_multiplier <= 4.0:
+                # Increase enemy health multiplier by 25% each level
+                # but cap it at 3.0
+                # This means that at level 5, enemy health will be 2.0
+                # and at level 10, it will be 3.0
+                # This is to prevent enemies from becoming too strong
+                # too quickly
+                # and to keep the game balanced
+                # and fun to play
+                # and to keep the game challenging
+                self.enemy_health_multiplier += 0.25
+
+            if self.player.level % 5 == 0:
+                self.should_spawn_boss = True
+
+    def spawn_boss(self):
+        # Prevent boss from spawning during upgrade menu
+        if not self.in_level_up_menu:
+            self.boss = Boss(app.WIDTH // 2, app.HEIGHT // 2, self.assets)
+            self.boss_spawned = True
+
+
+    def check_bullet_boss_collisions(self):
+        if not self.boss:
+            return
+        
+        bullets_to_check = self.player.bullets.copy()
+
+        for bullet in bullets_to_check:
+            # Ensure the bullet and boss rect still exist
+            if (bullet in self.player.bullets and 
+                hasattr(bullet, 'rect') and 
+                hasattr(self.boss, 'rect')):
+                
+                if bullet.rect.colliderect(self.boss.rect):
+                    enemy_killed = self.boss.take_damage(bullet.damage * self.player.damage_multiplier)
+                    
+                    if enemy_killed:
+                        # Boss defeated
+                        new_coin = Coin(self.boss.x, self.boss.y)
+                        self.coins.append(new_coin)
+                        self.boss = None
+                        self.boss_spawned = False
+                        break  # Exit loop after boss is defeated
 
     def spawn_powerups(self):
         self.powerup_spawn_timer += 1
@@ -417,5 +518,5 @@ class Game:
                 
                 # Move the coin toward player
                 coin.x += move_x
-                coin.y += move_y
+                coin.y += move_y 
                 coin.rect.center = (coin.x, coin.y)
