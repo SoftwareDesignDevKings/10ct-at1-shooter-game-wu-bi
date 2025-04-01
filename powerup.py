@@ -2,6 +2,10 @@ import app
 import random
 
 class PowerUp:
+    """
+    PowerUp class representing power-ups in the game.
+    It handles the spawning and function of power-ups in the game.
+    """
     def __init__(self, x, y, type):
         self.x = x
         self.y = y
@@ -18,12 +22,13 @@ class PowerUp:
         elif type == "magnet":
             self.color = (255, 255, 0)  # Yellow for magnet
         else:
-            self.color = (255, 255, 255)  # White for unknown
+            self.color = (255, 255, 255)
         
         self.image.fill(self.color)
         self.rect = self.image.get_rect(center=(self.x, self.y))
         self.duration = 300  # Power-up effect duration (5 seconds at 60 FPS)
     
+    # Draw the power-up on the screen
     def draw(self, surface):
         surface.blit(self.image, self.rect)
     
