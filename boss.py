@@ -45,9 +45,10 @@ class Boss:
         self.y = y
         
         # Boss-specific attributes
-        self.health = 250  # More health than regular enemies
-        self.max_health = 250
-        self.speed = 2  # Slightly faster movement
+        self.base_health = 2000  # Base health value that will be scaled
+        self.health = self.base_health  # Initial health equals base health
+        self.max_health = self.base_health
+        self.speed = 3  # Slightly faster movement
         
         # Use a unique enemy type or create a specific boss sprite
         self.frames = assets.get("boss", assets["enemies"]["demon"])  # Placeholder, you might want a unique boss sprite
