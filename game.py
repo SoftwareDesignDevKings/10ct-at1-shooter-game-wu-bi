@@ -592,7 +592,7 @@ class Game:
         If so, increase level, show upgrade menu, and increase game difficulty.
         """
         # Calculate XP needed for next level based on current level
-        xp_needed = self.player.level * self.player.level * 1
+        xp_needed = self.player.level * self.player.level * 6
         if self.player.xp >= xp_needed:
             # Leveled up
             self.player.level += 1
@@ -619,14 +619,14 @@ class Game:
         """
         # Prevent boss from spawning during upgrade menu
         if not self.in_level_up_menu:
-            self.boss_count += 1  # Increment boss count
+            self.boss_count += 1
             
             # Create the boss
             self.boss = Boss(app.WIDTH // 2, app.HEIGHT // 2, self.assets)
             
             # Scale the boss health based on how many bosses have been spawned
             # First boss has base health, each subsequent boss has double the health
-            health_multiplier = 1.2 ** (self.boss_count - 1)
+            health_multiplier = 1.3 ** (self.boss_count - 1)
             self.boss.health = self.boss.base_health * health_multiplier
             self.boss.max_health = self.boss.health
             
